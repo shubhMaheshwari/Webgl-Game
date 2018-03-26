@@ -10,6 +10,12 @@ function main() {
   const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
   // If we don't have a GL context, give up now
+  if(!canvas)
+  {
+    alert("No canvas found")
+  }
+
+  
 
   if (!gl) {
     alert('Unable to initialize WebGL. Your browser or machine may not support it.');

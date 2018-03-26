@@ -7,10 +7,6 @@ app.use(express.static('./public'));
 
 // index page 
 app.get('/', function(req, res) {
-
-	// var url = "https://www.khanacademy.org/profile/"
-	// var url ="https://www.youtube.com"
-
     res.render('index');
 });
 
