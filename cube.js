@@ -3,12 +3,14 @@
 // pos = position vector
 // dim = dimensions of the cube
 // rot = rotaion in z axis
-var rot_block = -0.1;
+var rot_block = -0.04;
 var cock_block = -3;
 var num_sides = 8; 
+var octagon_radius = 2;
+var rot_tunnel = 0.0;
 
 
-function Cube(gl,pos,dim,rot,color) { 
+function Cube(gl,pos,dim,rot,color_ind) { 
 
   // console.log("Cube Location at creation",pos);
   // Create a buffer for the cube's vertex positions.
@@ -73,9 +75,25 @@ function Cube(gl,pos,dim,rot,color) {
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   // Now set up the colors for the faces. We'll use solid colors
-  // for each face.
+  var faceColors = [];
+  // Color depends on purpose 
+  // For monsters we will use only red color
+  if (color_ind === 1){
+    faceColors = [
+    [1.0,  0.0,  0.0,  0.0],    // Front face: white
+    [1.0,  0.0,  0.0,  0.0],    // Back face: red
+    [1.0,  0.0,  0.0,  0.0],    // Top face: green
+    [1.0,  0.0,  0.0,  0.0],    // Bottom face: blue
+    [1.0,  0.0,  0.0,  0.0],    // Right face: yellow
+    [1.0,  0.0,  0.0,  0.0],    // Left face: purple
+  ];
+  }
 
-  const faceColors = [
+
+  // for each face.
+  // For tunnel multiple colors
+  else if(color_ind == 0){
+  faceColors = [
     [1.0,  1.0,  1.0,  1.0],    // Front face: white
     [1.0,  0.0,  0.0,  1.0],    // Back face: red
     [0.0,  1.0,  0.0,  1.0],    // Top face: green
@@ -83,6 +101,10 @@ function Cube(gl,pos,dim,rot,color) {
     [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
     [1.0,  0.0,  1.0,  1.0],    // Left face: purple
   ];
+  }
+
+  else
+    console.log("Error in color ind:",color_ind);
 
   // Convert the array of colors into a table for all the vertices.
 
@@ -203,7 +225,8 @@ function Cube(gl,pos,dim,rot,color) {
     color: colorBuffer,
     indices: indexBuffer,
     draw: draw_object,
-    tick: tick
+    tick: tick,
+    cubeRotation:cubeRotation
   };
 };
 
@@ -220,7 +243,7 @@ function Octagon(gl,pos,radius,sides){
     vec3.add(cube_location,location,[radius*Math.cos(i*angle), radius*Math.sin(i*angle), 0]);
 
     // width depends on distance from center w = tan(angle/2)*2*r
-    var new_cube = Cube(gl,cube_location,[2*radius*Math.tan(angle/2),0.1,4.0],[rot_block,cock_block,i*angle+ Math.PI/2] ,1);
+    var new_cube = Cube(gl,cube_location,[2*radius*Math.tan(angle/2),0.1,4.0],[rot_block,cock_block,i*angle+ Math.PI/2] ,0);
     cubelist.push(new_cube);
   }
 
@@ -253,10 +276,9 @@ function Octagon(gl,pos,radius,sides){
 function Tunnel(gl,bricks){
 
   var octagonlist = [];
-
   for (var i = 0; i < bricks; i++) {
     // width depends on distance from center w = tan(angle/2)*2*r
-    var new_oct = Octagon(gl,[0.0,0.0,-2.0*i],2,8);
+    var new_oct = Octagon(gl,[0.0,0.0,-2.0*i],octagon_radius,8);
     octagonlist.push(new_oct);
   }
 
@@ -265,8 +287,10 @@ function Tunnel(gl,bricks){
   var modelViewMatrix = mat4.create();
 
   mat4.fromTranslation(modelViewMatrix,[0.0,0.0,0.0]);  // amount to translate
-  
-
+  mat4.rotate(modelViewMatrix,  // destination matrix
+              modelViewMatrix,  // matrix to rotate
+              rot_tunnel,     // amount to rotate in radians
+              [0,0,1]);       // axis to rotate around (Z)
   modelViewMatrix = matrixMultiply(viewMatrix,modelViewMatrix);
 
 
@@ -280,12 +304,10 @@ function Tunnel(gl,bricks){
 
   function tick(eye) {
     if(octagonlist[0].location[2]-eye[2] > 2*bricks){
-      console.log(octagonlist[0].location[2],eye[2])
       var old_octagon = octagonlist.shift()
        // Append to the start
       old_octagon.location[2] = octagonlist[bricks-2].location[2] -2.0;
       octagonlist.push(old_octagon);
-
       }
 
 
@@ -312,19 +334,44 @@ function Tunnel(gl,bricks){
 
 
 
-function monsters(){
+function Beam(gl,pos){
   
+  var location = pos;
+  var dim = [0.2,4.0,0.5];
+  var cube = Cube(gl,location,dim,[0,0,0],1);
+  function draw_object(gl,programInfo,projectionMatrix,viewMatrix){
 
-  var type = Math.random() %3;
+      var modelViewMatrix  = mat4.create();
+      mat4.rotate(modelViewMatrix,  // destination matrix
+              modelViewMatrix,  // matrix to rotate
+              rot_tunnel,     // amount to rotate in radians
+              [0,0,1]);       // axis to rotate around (Z)
 
+      modelViewMatrix = matrixMultiply(viewMatrix,modelViewMatrix);
 
-
-  function draw_object(){
-
+      gl = cube.draw(gl,programInfo,projectionMatrix,modelViewMatrix);
+      return gl;
   };
 
   function tick(){
-
+      // cube.cubeRotation[2] += Math.PI/8;
   };
 
-}
+  function detect_collision(rad,angle,zdist){
+
+      var base_angle_sin = dim[0]/rad*2;    
+      // We can prove that the angle diffrernce of the beam and the camera has to be greater than a particular base values
+      // rot_tunnel is from the referenced plane
+      var sin_angle = Math.sin(angle - cube.cubeRotation[2] - rot_tunnel);
+      return Math.abs(sin_angle) < base_angle_sin && Math.abs(zdist - location[2]) < dim[2]/2;
+  };
+
+  return {
+    draw:draw_object,
+    location:location,
+    cube:cube,
+    tick:tick,
+    detect_collision:detect_collision
+  }
+
+};
