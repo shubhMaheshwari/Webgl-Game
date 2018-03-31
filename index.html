@@ -27,6 +27,7 @@
       <div class="container">
         <div class="row">
           <canvas id="glcanvas" width='1200' height='1200'></canvas>
+          <canvas id="testCanvas" width='0' height='0'></canvas>
         </div>  
       </div>  
     </main>
@@ -37,11 +38,91 @@
 
   </body>
 
-  <script src="vector.js"></script>
+  <!-- Helper Libraries -->
   <script src="gl-matrix.js"></script>
+  <script src="vector.js"></script>
+
+  <!-- Keyboard control -->
   <script src="mousetrap.min.js"></script>
+  
+
+  <!-- Shaders -->
+
+<script id="fragment_shader" type="x-shader/x-fragment">
+  precision mediump float;
+
+  varying vec3 vTransformedNormal;
+  varying vec4 vColor;
+  varying vec4 vPosition;
+
+  uniform float uMaterialShininess;
+
+  uniform vec3 uAmbientColor;
+  uniform vec3 uAmbientColorObject;
+  uniform vec3 uPointLightingLocation;
+  uniform vec3 uPointLightingSpecularColor;
+  uniform vec3 uPointLightingDiffuseColor;
+  uniform vec3 eyeLocation;
+
+
+  void main(void) {
+  vec3 lightWeighting;
+  vec3 uAmbientTotal = uAmbientColor * uAmbientColorObject;
+  // Diffuse lighting  
+
+  vec3 normal = normalize(vTransformedNormal);
+  vec3 lightDirection = normalize(uPointLightingLocation - vPosition.xyz);
+
+  float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+
+  // Specular
+  float specularLightWeighting = 0.0;
+  float uMaterialShininess = 20.0;
+  
+  vec3 eyeDirection = normalize(eyeLocation-vPosition.xyz);
+  vec3 reflectionDirection = reflect(-lightDirection, normal);
+
+  specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uMaterialShininess);
+
+
+  lightWeighting = uAmbientTotal+ uPointLightingDiffuseColor*diffuseLightWeighting + specularLightWeighting*uPointLightingSpecularColor; 
+
+  gl_FragColor = vec4(vColor.rgb * lightWeighting,vColor.a);
+
+  }    
+</script>
+
+
+  <script id="vertex_shader" type="x-shader/x-fragment">
+    attribute vec4 aVertexPosition;
+    attribute vec4 aVertexColor;
+    attribute vec3 aVertexNormal;
+
+    uniform mat4 uModelViewMatrix;
+    uniform mat4 uProjectionMatrix;
+    uniform mat3 uNMatrix;
+
+    varying vec4 vColor;
+    varying vec3 vTransformedNormal;
+    varying vec4 vPosition;
+
+    void main(void) {
+      vPosition = uModelViewMatrix * aVertexPosition;
+      gl_Position = uProjectionMatrix * vPosition;
+      vColor = aVertexColor;
+      vTransformedNormal = uNMatrix * aVertexNormal;
+    }
+  </script>
+
+  <!-- Basic Webgl Code -->
   <script src="cube.js"></script>
   <script src="pyramid.js"></script>
 
+  <!-- For audio -->
+  <script src="https://code.createjs.com/1.0.0/createjs.min.js" ></script>
+  <script src="audioplay.js"></script>
+  
+  <!-- Main -->
   <script src="webgl-demo.js"></script>
+
 </html>

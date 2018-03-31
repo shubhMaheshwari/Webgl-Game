@@ -4,10 +4,11 @@
 // dim = dimensions of the cube
 // rot = rotaion in z axis
 var rot_block = -0.04;
-var cock_block = -3;
+var cock_block = 0.0;
 var num_sides = 8; 
 var octagon_radius = 2;
 var rot_tunnel = 0.0;
+var brick_depth = 2.0;
 
 
 function Cube(gl,pos,dim,rot,color_ind) { 
@@ -74,6 +75,50 @@ function Cube(gl,pos,dim,rot,color_ind) {
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
+  // Now we will define the normals for each vertex
+const cubeVertexNormalBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
+var vertexNormals = [
+  // Front face
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
+   0.0,  0.0,  1.0,
+
+  // Back face
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+   0.0,  0.0, -1.0,
+
+  // Top face
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0,
+   0.0,  1.0,  0.0,
+
+  // Bottom face
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+   0.0, -1.0,  0.0,
+
+  // Right face
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0,
+   1.0,  0.0,  0.0,
+
+  // Left face
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0,
+  -1.0,  0.0,  0.0,
+  ];
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
+  
+
   // Now set up the colors for the faces. We'll use solid colors
   var faceColors = [];
   // Color depends on purpose 
@@ -87,27 +132,7 @@ function Cube(gl,pos,dim,rot,color_ind) {
     [1.0,  0.0,  0.0,  0.0],    // Right face: yellow
     [1.0,  0.0,  0.0,  0.0],    // Left face: purple
   ];
-  }
-
-
-  // for each face.
-  // For tunnel multiple colors
-  else if(color_ind == 0){
-  faceColors = [
-    [1.0,  1.0,  1.0,  1.0],    // Front face: white
-    [1.0,  0.0,  0.0,  1.0],    // Back face: red
-    [0.0,  1.0,  0.0,  1.0],    // Top face: green
-    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-    [1.0,  0.0,  1.0,  1.0],    // Left face: purple
-  ];
-  }
-
-  else
-    console.log("Error in color ind:",color_ind);
-
-  // Convert the array of colors into a table for all the vertices.
-
+  
   var colors = [];
 
   for (var j = 0; j < faceColors.length; ++j) {
@@ -115,6 +140,58 @@ function Cube(gl,pos,dim,rot,color_ind) {
     // Repeat each color four times for the four vertices of the face
     colors = colors.concat(c, c, c, c);
   }
+
+
+  }
+
+
+  // for each face.
+  // For tunnel multiple colors
+  else if(color_ind == 2){
+  faceColors = [
+    [1.0,  0.0,  0.0,  1.0],    // face: red
+    [1.0,  0.0,  0.0,  1.0],    // face: red
+    [1.0,  0.0,  0.0,  1.0],    // face: red
+    [1.0,  0.0,  0.0,  1.0],    // face: red
+    [1.0,  0.0,  0.0,  1.0],    // face: red
+    [1.0,  0.0,  0.0,  1.0],    // face: red
+    [1.0,  0.0,  0.0,  1.0],    // face: red
+  ];
+
+  var colors = [];
+
+  for (var j = 0; j < 6; ++j) {
+    const c = faceColors[randint(faceColors.length)];
+    // Repeat each color four times for the four vertices of the face
+    colors = colors.concat(c, c, c, c);
+  }
+
+  }
+
+  else if(color_ind == 3){
+  faceColors = [
+    [1.0,  1.0,  1.0,  1.0],    // Front face: white
+    [0.0,  1.0,  0.0,  1.0],    // Top face: green
+    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+    [1.0,  0.0,  1.0,  1.0],    // Left face: purple
+  ];
+
+  var colors = [];
+
+  for (var j = 0; j < faceColors.length; ++j) {
+    // Repeat each color four times for the four vertices of the face
+    colors = colors.concat(faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)]);
+  }
+
+  }
+
+  else
+    console.log("Error in color ind:",color_ind);
+
+  // Convert the array of colors into a table for all the vertices.
+
+  
 
   const colorBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
@@ -191,6 +268,11 @@ function Cube(gl,pos,dim,rot,color_ind) {
   gl.vertexAttribPointer(programInfo.attribLocations.vertexColor,4,gl.FLOAT,false,0,0);
   gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
 
+  // Now bind the normals for lighting
+  gl.bindBuffer(gl.ARRAY_BUFFER,cubeVertexNormalBuffer);
+  gl.vertexAttribPointer(programInfo.attribLocations.vertexNormal,3,gl.FLOAT,false,0,0);
+  gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal);
+
   // Tell WebGL which indices to use to index the vertices
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   // Tell WebGL to use our program when drawing
@@ -198,6 +280,12 @@ function Cube(gl,pos,dim,rot,color_ind) {
   // Set the shader uniforms
   gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,false,projectionMatrix);
   gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix,false,modelViewMatrix);
+
+  var normalMatrix = mat3.create();
+  mat4.toInverseMat3(modelViewMatrix, normalMatrix);
+  mat3.transpose(normalMatrix,normalMatrix);
+  gl.uniformMatrix3fv(programInfo.uniformLocations.normalMatrix, false, normalMatrix);
+
 
   gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
 
@@ -243,7 +331,7 @@ function Octagon(gl,pos,radius,sides){
     vec3.add(cube_location,location,[radius*Math.cos(i*angle), radius*Math.sin(i*angle), 0]);
 
     // width depends on distance from center w = tan(angle/2)*2*r
-    var new_cube = Cube(gl,cube_location,[2*radius*Math.tan(angle/2),0.1,4.0],[rot_block,cock_block,i*angle+ Math.PI/2] ,0);
+    var new_cube = Cube(gl,cube_location,[2*radius*Math.tan(angle/2),0.2,brick_depth],[rot_block,cock_block,i*angle+ Math.PI/2] ,3);
     cubelist.push(new_cube);
   }
 
@@ -278,7 +366,7 @@ function Tunnel(gl,bricks){
   var octagonlist = [];
   for (var i = 0; i < bricks; i++) {
     // width depends on distance from center w = tan(angle/2)*2*r
-    var new_oct = Octagon(gl,[0.0,0.0,-2.0*i],octagon_radius,8);
+    var new_oct = Octagon(gl,[0.0,0.0,-brick_depth*i/2],octagon_radius,8);
     octagonlist.push(new_oct);
   }
 
@@ -295,7 +383,6 @@ function Tunnel(gl,bricks){
 
 
   for (var i = 0; i < bricks;  i++,'\r') {
-    // console.log(i)
     gl = octagonlist[i].draw(gl,programInfo,projectionMatrix,modelViewMatrix);
   };
 
@@ -303,10 +390,10 @@ function Tunnel(gl,bricks){
   };
 
   function tick(eye) {
-    if(octagonlist[0].location[2]-eye[2] > 2*bricks){
+    if(octagonlist[0].location[2]-eye[2] > brick_depth*bricks/2){
       var old_octagon = octagonlist.shift()
        // Append to the start
-      old_octagon.location[2] = octagonlist[bricks-2].location[2] -2.0;
+      old_octagon.location[2] = octagonlist[bricks-2].location[2] -brick_depth/2;
       octagonlist.push(old_octagon);
       }
 
@@ -320,8 +407,6 @@ function Tunnel(gl,bricks){
 
   
   }
-
-
 
   return {
     bricks:bricks,
@@ -338,10 +423,11 @@ function Beam(gl,pos){
   
   var location = pos;
   var dim = [0.2,4.0,0.5];
-  var cube = Cube(gl,location,dim,[0,0,0],1);
+  var cube = Cube(gl,[0.0,0.0,0.0],dim,[0,0,2*Math.PI*Math.random()],2);
   function draw_object(gl,programInfo,projectionMatrix,viewMatrix){
 
       var modelViewMatrix  = mat4.create();
+      mat4.fromTranslation(modelViewMatrix,location);  // amount to translate
       mat4.rotate(modelViewMatrix,  // destination matrix
               modelViewMatrix,  // matrix to rotate
               rot_tunnel,     // amount to rotate in radians
@@ -354,7 +440,7 @@ function Beam(gl,pos){
   };
 
   function tick(){
-      // cube.cubeRotation[2] += Math.PI/8;
+      cube.cubeRotation[2] += Math.PI*location[2]/20000;
   };
 
   function detect_collision(rad,angle,zdist){

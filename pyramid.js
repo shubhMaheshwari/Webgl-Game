@@ -211,6 +211,7 @@ function Pyramid(gl,pos,dim,rot,color_ind) {
 
 function Spike(gl,pos,num){
   var location = pos;
+  var spike_rotation = 0.0;
 
   if (num > num_sides)
     num = num_sides;
@@ -220,7 +221,7 @@ function Spike(gl,pos,num){
   var j = Math.floor(num_sides/num);
   var dim = [0.5,2.0,0.5];
   for (var i = 0; i < num; i++) {
-    var spike = Pyramid(gl,[octagon_radius*Math.sin(j*i*angle),-octagon_radius*Math.cos(j*i*angle),0.0],dim,[0,0,j*i*angle],0)
+    var spike = Pyramid(gl,[octagon_radius*Math.sin(j*i*angle),-octagon_radius*Math.cos(j*i*angle),0.0],dim,[0,0,j*i*angle],1)
     pylist.push(spike);
   }
 
@@ -232,26 +233,29 @@ function Spike(gl,pos,num){
 
     mat4.rotate(modelViewMatrix,  // destination matrix
             modelViewMatrix,  // matrix to rotate
-            rot_tunnel,     // amount to rotate in radians
+            rot_tunnel + spike_rotation,     // amount to rotate in radians
             [0,0,1]);       // axis to rotate around (Z)
 
     modelViewMatrix = matrixMultiply(viewMatrix,modelViewMatrix);
+  
+  // No need to tranperancy here
 
   for (var i = 0; i < num;  i++) {
     gl = pylist[i].draw(gl,programInfo,projectionMatrix,modelViewMatrix);
   };
 
+
   return gl;
   };
 
   function tick(){
-
+      spike_rotation -= Math.PI*location[2]/20000;
   }
 
   function detect_collision(eye){
 
     for (var i = 0; i < num; i++) {
-      if(pylist[i].detect_collision(vec3.rotateZ([0.0,0.0,0.0],eye,location,-rot_tunnel)) && Math.abs(eye[2] - location[2]) < dim[2]/2){
+      if(pylist[i].detect_collision(vec3.rotateZ([0.0,0.0,0.0],eye,location,-rot_tunnel-spike_rotation)) && Math.abs(eye[2] - location[2]) < dim[2]/2){
         return true;
       }
     }

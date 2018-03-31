@@ -1,0 +1,19 @@
+{
+  "name": "webgl_game",
+  "version": "1.0.0",
+  "description": "Tunnel Rush Trippy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shubhMaheshwari/Webgl-Game.git"
+  },
+  "author": "Shubh Maheshwari",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shubhMaheshwari/Webgl-Game/issues"
+  },
+  "homepage": "https://github.com/shubhMaheshwari/Webgl-Game#readme"
+}
