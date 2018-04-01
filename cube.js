@@ -9,9 +9,12 @@ var num_sides = 8;
 var octagon_radius = 2;
 var rot_tunnel = 0.0;
 var brick_depth = 2.0;
+var wallTexture;
 
 
-function Cube(gl,pos,dim,rot,color_ind) { 
+function Cube(gl,pos,dim,rot,color_ind,bool_texure) { 
+
+  var isTexture = bool_texure;
 
   // console.log("Cube Location at creation",pos);
   // Create a buffer for the cube's vertex positions.
@@ -118,84 +121,131 @@ var vertexNormals = [
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
   
+      // Now set up the colors for the faces. We'll use solid colors
+      var faceColors = [];
+      // Color depends on purpose 
+      // For monsters we will use only red color
+      if (color_ind == 1){
+        faceColors = [
+        [1.0,  0.0,  0.0,  0.0],    // Front face: white
+        [1.0,  0.0,  0.0,  0.0],    // Back face: red
+        [1.0,  0.0,  0.0,  0.0],    // Top face: green
+        [1.0,  0.0,  0.0,  0.0],    // Bottom face: blue
+        [1.0,  0.0,  0.0,  0.0],    // Right face: yellow
+        [1.0,  0.0,  0.0,  0.0],    // Left face: purple
+      ];
+      
+      var colors = [];
 
-  // Now set up the colors for the faces. We'll use solid colors
-  var faceColors = [];
-  // Color depends on purpose 
-  // For monsters we will use only red color
-  if (color_ind === 1){
-    faceColors = [
-    [1.0,  0.0,  0.0,  0.0],    // Front face: white
-    [1.0,  0.0,  0.0,  0.0],    // Back face: red
-    [1.0,  0.0,  0.0,  0.0],    // Top face: green
-    [1.0,  0.0,  0.0,  0.0],    // Bottom face: blue
-    [1.0,  0.0,  0.0,  0.0],    // Right face: yellow
-    [1.0,  0.0,  0.0,  0.0],    // Left face: purple
-  ];
-  
-  var colors = [];
-
-  for (var j = 0; j < faceColors.length; ++j) {
-    const c = faceColors[j];
-    // Repeat each color four times for the four vertices of the face
-    colors = colors.concat(c, c, c, c);
-  }
-
-
-  }
+      for (var j = 0; j < faceColors.length; ++j) {
+        const c = faceColors[j];
+        // Repeat each color four times for the four vertices of the face
+        colors = colors.concat(c, c, c, c);
+      }
 
 
-  // for each face.
-  // For tunnel multiple colors
-  else if(color_ind == 2){
-  faceColors = [
-    [1.0,  0.0,  0.0,  1.0],    // face: red
-    [1.0,  0.0,  0.0,  1.0],    // face: red
-    [1.0,  0.0,  0.0,  1.0],    // face: red
-    [1.0,  0.0,  0.0,  1.0],    // face: red
-    [1.0,  0.0,  0.0,  1.0],    // face: red
-    [1.0,  0.0,  0.0,  1.0],    // face: red
-    [1.0,  0.0,  0.0,  1.0],    // face: red
-  ];
+      }
 
-  var colors = [];
 
-  for (var j = 0; j < 6; ++j) {
-    const c = faceColors[randint(faceColors.length)];
-    // Repeat each color four times for the four vertices of the face
-    colors = colors.concat(c, c, c, c);
-  }
+      // for each face.
+      // For tunnel multiple colors
+      else if(color_ind == 2){
+      faceColors = [
+        [1.0,  0.0,  0.0,  1.0],    // face: red
+        [1.0,  0.0,  0.0,  1.0],    // face: red
+        [1.0,  0.0,  0.0,  1.0],    // face: red
+        [1.0,  0.0,  0.0,  1.0],    // face: red
+        [1.0,  0.0,  0.0,  1.0],    // face: red
+        [1.0,  0.0,  0.0,  1.0],    // face: red
+        [1.0,  0.0,  0.0,  1.0],    // face: red
+      ];
 
-  }
+      var colors = [];
 
-  else if(color_ind == 3){
-  faceColors = [
-    [1.0,  1.0,  1.0,  1.0],    // Front face: white
-    [0.0,  1.0,  0.0,  1.0],    // Top face: green
-    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-    [1.0,  0.0,  1.0,  1.0],    // Left face: purple
-  ];
+      for (var j = 0; j < 6; ++j) {
+        const c = faceColors[randint(faceColors.length)];
+        // Repeat each color four times for the four vertices of the face
+        colors = colors.concat(c, c, c, c);
+      }
 
-  var colors = [];
+      }
 
-  for (var j = 0; j < faceColors.length; ++j) {
-    // Repeat each color four times for the four vertices of the face
-    colors = colors.concat(faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)]);
-  }
+      else if(color_ind == 3){
+      faceColors = [
+        [1.0,  1.0,  1.0,  1.0],    // Front face: white
+        [0.0,  1.0,  0.0,  1.0],    // Top face: green
+        [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+        [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+        [1.0,  0.0,  1.0,  1.0],    // Left face: purple
+      ];
 
-  }
+      var colors = [];
 
-  else
-    console.log("Error in color ind:",color_ind);
+      for (var j = 0; j < faceColors.length; ++j) {
+        // Repeat each color four times for the four vertices of the face
+        colors = colors.concat(faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)], faceColors[randint(faceColors.length)]);
+      }
 
-  // Convert the array of colors into a table for all the vertices.
+      }
 
-  
+      else
+        console.log("Error in color ind:",color_ind);
 
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+      // Convert the array of colors into a table for all the vertices.
+
+
+
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+
+    // const cubeVertexTextureCoordBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+    // var textureCoords = [
+    //   // Front face
+    //   0.0, 0.0,
+    //   1.0, 0.0,
+    //   1.0, 1.0,
+    //   0.0, 1.0,
+
+    //   // Back face
+    //   1.0, 0.0,
+    //   1.0, 1.0,
+    //   0.0, 1.0,
+    //   0.0, 0.0,
+
+    //   // Top face
+    //   0.0, 1.0,
+    //   0.0, 0.0,
+    //   1.0, 0.0,
+    //   1.0, 1.0,
+
+    //   // Bottom face
+    //   1.0, 1.0,
+    //   0.0, 1.0,
+    //   0.0, 0.0,
+    //   1.0, 0.0,
+
+    //   // Right face
+    //   1.0, 0.0,
+    //   1.0, 1.0,
+    //   0.0, 1.0,
+    //   0.0, 0.0,
+
+    //   // Left face
+    //   0.0, 0.0,
+    //   1.0, 0.0,
+    //   1.0, 1.0,
+    //   0.0, 1.0,
+    // ];
+    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+    // cubeVertexTextureCoordBuffer.itemSize = 2;
+    // cubeVertexTextureCoordBuffer.numItems = 24;
+    // console.log(cubeVertexTextureCoordBuffer,colorBuffer)
+
+
+
 
   // Build the element array buffer; this specifies the indices
   // into the vertex arrays for each face's vertices.
@@ -250,7 +300,9 @@ var vertexNormals = [
 
   // Tell WebGL how to pull out the positions from the position
   // buffer into the vertexPosition attribute
-    
+  // console.log(wallTexture.image)
+  // First we start by checking whether to use texture
+  
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     
       // vertexAttribPointer @params
@@ -264,14 +316,26 @@ var vertexNormals = [
   
   // Tell WebGL how to pull out the colors from the color buffer
   // into the vertexColor attribute.
+  // if(!isTexture){
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
   gl.vertexAttribPointer(programInfo.attribLocations.vertexColor,4,gl.FLOAT,false,0,0);
   gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
-
+// }
   // Now bind the normals for lighting
   gl.bindBuffer(gl.ARRAY_BUFFER,cubeVertexNormalBuffer);
   gl.vertexAttribPointer(programInfo.attribLocations.vertexNormal,3,gl.FLOAT,false,0,0);
   gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal);
+
+  // if(isTexture && !loading_image){
+  //   console.log("L:",loading_image)
+  //   gl.uniform1i(programInfo.isTexture,1);
+  //   gl.activeTexture(gl.TEXTURE0);
+  //   gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+  //   gl.uniform1i(programInfo.texture.image, 0);
+  // }
+  // else
+  //   gl.uniform1i(programInfo.isTexture,0);
+
 
   // Tell WebGL which indices to use to index the vertices
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -309,9 +373,6 @@ var vertexNormals = [
 
   return {
     location:location,
-    position: positionBuffer,
-    color: colorBuffer,
-    indices: indexBuffer,
     draw: draw_object,
     tick: tick,
     cubeRotation:cubeRotation
@@ -331,7 +392,7 @@ function Octagon(gl,pos,radius,sides){
     vec3.add(cube_location,location,[radius*Math.cos(i*angle), radius*Math.sin(i*angle), 0]);
 
     // width depends on distance from center w = tan(angle/2)*2*r
-    var new_cube = Cube(gl,cube_location,[2*radius*Math.tan(angle/2),0.2,brick_depth],[rot_block,cock_block,i*angle+ Math.PI/2] ,3);
+    var new_cube = Cube(gl,cube_location,[2*radius*Math.tan(angle/2),0.2,brick_depth],[rot_block,cock_block,i*angle+ Math.PI/2] ,3,false);
     cubelist.push(new_cube);
   }
 
@@ -423,7 +484,7 @@ function Beam(gl,pos){
   
   var location = pos;
   var dim = [0.2,4.0,0.5];
-  var cube = Cube(gl,[0.0,0.0,0.0],dim,[0,0,2*Math.PI*Math.random()],2);
+  var cube = Cube(gl,[0.0,0.0,0.0],dim,[0,0,2*Math.PI*Math.random()],2,false);
   function draw_object(gl,programInfo,projectionMatrix,viewMatrix){
 
       var modelViewMatrix  = mat4.create();
@@ -434,13 +495,12 @@ function Beam(gl,pos){
               [0,0,1]);       // axis to rotate around (Z)
 
       modelViewMatrix = matrixMultiply(viewMatrix,modelViewMatrix);
-
       gl = cube.draw(gl,programInfo,projectionMatrix,modelViewMatrix);
       return gl;
   };
 
   function tick(){
-      cube.cubeRotation[2] += Math.PI*location[2]/20000;
+      cube.cubeRotation[2] += Math.PI*location[2]/200000;
   };
 
   function detect_collision(rad,angle,zdist){

@@ -5,13 +5,13 @@
 const canvas = document.querySelector('#glcanvas');
 var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
-var zspeed = 0.25;
+var zspeed = 0.125;
 var yspeed = 0.0;
 var is_jumping = false;
-var num_bricks = 50;
+var num_bricks = 2;
 // const new_cube = Cube(gl,[0.0,0.0,-10.0],[1.0,4.0,1.0],[0,0,0],1);
 const tunnel = Tunnel(gl,num_bricks);
-const obstacles = build_obstacle(gl,50);
+const obstacles = build_obstacle(gl,25);
 var camera_roation = 0.0;
 var camera_radius = 1.0;
 var eye = [0.0,-camera_radius,2.0];
@@ -19,8 +19,9 @@ var target = [0.0,-camera_radius,-3.0];
 // This is with respect to the eye
 var lightSourceLocation = [0.0,0.0,-30.0];
 var pause_status = true;
-var music_status = true;
 var dM = 0.0;
+var loading_image = true;
+
 
 
 // Run the game 
@@ -45,6 +46,7 @@ function main() {
   // Initialize a shader program; this is where all the lighting
   // for the vertices and so forth is established.
   const shaderProgram = initShaderProgram(gl);
+  // initTexture();
 
   // Collect all the info needed to use the shader program.
   // Look up which attributes our shader program is using
@@ -55,7 +57,8 @@ function main() {
     attribLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
       vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
-      vertexNormal: gl.getAttribLocation(shaderProgram,'aVertexNormal')
+      vertexNormal: gl.getAttribLocation(shaderProgram,'aVertexNormal'),
+      // vertexTexture: gl.getAttribLocation(shaderProgram,'aVertexTexture'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
@@ -72,15 +75,23 @@ function main() {
       eyeLocation: gl.getUniformLocation(shaderProgram,'eyeLocation'),
     },
 
+    // texture:{
+    //   image:gl.getUniformLocation(shaderProgram,'sampler'),
+    //   isTexture:gl.getUniformLocation(shaderProgram,'isTextured'),
+    // }
+
   };
 
   // Bind the keyboard and mouse keys
   key_bindings();
 
+  // Manage UI
+  manage_init();
+
   // Here's where we call the routine that builds all the
   // objects we'll be drawing.
 
-  var fps = 10  ;
+  var fps = 20  ;
   var now;
   var then = Date.now();
   var interval = 1000/fps;
@@ -95,6 +106,10 @@ function main() {
     if(deltaTime > interval){
       drawScene(gl, programInfo);
       
+       // Manage UI
+       manage_ui();
+ 
+
       // If game is not paused tick elements
       if (!pause_status) tick_elements();
     
@@ -108,6 +123,8 @@ function main() {
 
 // Function to call for chaning any element per time step
 function tick_elements() {
+
+  
 
 
   // Camera Updates
@@ -143,7 +160,11 @@ function tick_elements() {
   camera_radius += yspeed;
 
   // All collision detection
-  if(obstacles.detect_collision()) pause_status = true;
+  if(obstacles.detect_collision()) 
+    {pause_status = true;
+      eye[2] -= 1;
+     lives -=1;
+     } 
 
   tunnel.tick(eye);
   obstacles.tick();
@@ -164,7 +185,9 @@ function drawScene(gl, programInfo) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   // Lighting 
   // Ambient Source
-  gl.uniform3f(programInfo.light.ambientColor,0.5 ,0.5 ,0.5 );
+  gl.useProgram(programInfo.program);
+
+  gl.uniform3f(programInfo.light.ambientColor,3.0 ,3.0 ,3.0 );
   // gl.uniform3f(programInfo.light.ambientColor,0.2,0.2,0.2);
   // Light Source Location
   gl.uniform3f(programInfo.light.lightLocation,lightSourceLocation[0], lightSourceLocation[1], lightSourceLocation[2]);
@@ -178,6 +201,8 @@ function drawScene(gl, programInfo) {
   gl.uniform3f(programInfo.light.specularColor, 0.3,  0.3,  0.3);
   // Eye location 
   gl.uniform3f(programInfo.light.eyeLocation, eye[0],  eye[1],  eye[2]);
+
+
 
 
   // Create a perspective matrix, a special matrix that is
@@ -217,25 +242,25 @@ function drawScene(gl, programInfo) {
 
 function key_bindings(){
   
-  Mousetrap.bind('up', function() {rot_block -= 0.02});
-  Mousetrap.bind('w', function() {rot_block -= 0.02});
+  Mousetrap.bind('up', function() {rot_block -= 0.02},'keypress');
+  Mousetrap.bind('w', function() {rot_block -= 0.02},'keypress');
 
-  Mousetrap.bind('s', function() {rot_block += 0.02});
-  Mousetrap.bind('down', function() {rot_block += 0.02});
+  Mousetrap.bind('s', function() {rot_block += 0.02},'keypress');
+  Mousetrap.bind('down', function() {rot_block += 0.02},'keypress');
 
-  Mousetrap.bind('a', function() {camera_roation -= 2*Math.PI/num_sides});
+  Mousetrap.bind('a', function() {camera_roation -= 2*Math.PI/num_sides},'keypress');
   Mousetrap.bind('left', function() {rot_tunnel -= 0.2*Math.PI/num_sides});
 
-  Mousetrap.bind('d', function() {camera_roation += 2*Math.PI/num_sides});
+  Mousetrap.bind('d', function() {camera_roation += 2*Math.PI/num_sides},'keypress');
   Mousetrap.bind('right', function() {rot_tunnel += 0.2*Math.PI/num_sides});
 
-  Mousetrap.bind('b', function() {eye[2] += 2*zspeed;});
+  Mousetrap.bind('b', function() {eye[2] += 2*zspeed;},'keypress');
   Mousetrap.bind('t', function() {camera_roation += Math.PI;});
 
   Mousetrap.bind('space', function() {console.log("Jump"); yspeed = -0.2; is_jumping = true;});
 
   Mousetrap.bind('p', function() {pause_status = !pause_status; console.log(pause_status)});
-  Mousetrap.bind('m', function() {music_status = !music_status; if(music_status) audio.play(); else audio.pause()});
+  Mousetrap.bind('m', function() {soundInstance.paused = !soundInstance.paused});
 
 
 };
@@ -302,7 +327,8 @@ function build_obstacle(gl,num_obstacle){
   var obstacle_list = []
   var obj_ind = []
   for (var i = 0; i < num_obstacle; i++) {
-    var ob = randint(2);
+    // var ob = randint(2);
+    var ob = 0;
     if (ob == 0){
       var beam_monster = Beam(gl,[0.0,0.0,-i*5.0]);
       obstacle_list.push(beam_monster);
@@ -370,3 +396,60 @@ function build_obstacle(gl,num_obstacle){
   }
 }
 
+// Display Variables
+var score;
+var score_h4;
+var lives=3;
+var lives_h4;
+var levels=0;
+var levels_h4;
+var mute_box;
+var pause_box;
+function manage_init(){
+  score = 0.0;
+  score_h4 = document.getElementById('score_value');  
+  lives = 3;
+  lives_h4 = document.getElementById('live_value')
+
+  level_h4 = document.getElementById('level_value')
+  
+  mute_box = document.getElementById('mute_box');
+  pause_box = document.getElementById('pause_box');
+}
+
+function manage_ui(){
+  // Update Score
+  score = -eye[2] + 2;
+  score_h4.innerHTML = "Score:" + score*8;
+  lives_h4.innerHTML = "Lives:" + lives;
+  level_h4.innerHTML = "Level:" + levels;
+
+  pause_box.checked = pause_status;
+  if(soundInstance)
+    mute_box.checked = soundInstance.paused;
+
+}
+
+
+function initTexture(){
+  // wallTexture = gl.createTexture();
+  // wallTexture.image =  new Image();
+  // wallTexture.image.src = "./crate.gif";
+
+  // wallTexture.image.onload = function() {
+  //     console.log("Loading image"); 
+  //     handleLoadedTexture(wallTexture);
+  //     loading_image = false;
+  //   }
+
+}
+
+function handleLoadedTexture(texture) {
+    // gl.bindTexture(gl.TEXTURE_2D, texture);
+    // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  }

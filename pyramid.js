@@ -249,7 +249,7 @@ function Spike(gl,pos,num){
   };
 
   function tick(){
-      spike_rotation -= Math.PI*location[2]/20000;
+      spike_rotation -= Math.PI*location[2]/200000;
   }
 
   function detect_collision(eye){
