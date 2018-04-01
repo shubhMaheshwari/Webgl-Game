@@ -200,49 +200,48 @@ var vertexNormals = [
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
 
-    // const cubeVertexTextureCoordBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
-    // var textureCoords = [
-    //   // Front face
-    //   0.0, 0.0,
-    //   1.0, 0.0,
-    //   1.0, 1.0,
-    //   0.0, 1.0,
+    const cubeVertexTextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+    var textureCoords = [
+      // Front face
+      0.0, 0.0,
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0,
 
-    //   // Back face
-    //   1.0, 0.0,
-    //   1.0, 1.0,
-    //   0.0, 1.0,
-    //   0.0, 0.0,
+      // Back face
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0,
+      0.0, 0.0,
 
-    //   // Top face
-    //   0.0, 1.0,
-    //   0.0, 0.0,
-    //   1.0, 0.0,
-    //   1.0, 1.0,
+      // Top face
+      0.0, 1.0,
+      0.0, 0.0,
+      1.0, 0.0,
+      1.0, 1.0,
 
-    //   // Bottom face
-    //   1.0, 1.0,
-    //   0.0, 1.0,
-    //   0.0, 0.0,
-    //   1.0, 0.0,
+      // Bottom face
+      1.0, 1.0,
+      0.0, 1.0,
+      0.0, 0.0,
+      1.0, 0.0,
 
-    //   // Right face
-    //   1.0, 0.0,
-    //   1.0, 1.0,
-    //   0.0, 1.0,
-    //   0.0, 0.0,
+      // Right face
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0,
+      0.0, 0.0,
 
-    //   // Left face
-    //   0.0, 0.0,
-    //   1.0, 0.0,
-    //   1.0, 1.0,
-    //   0.0, 1.0,
-    // ];
-    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-    // cubeVertexTextureCoordBuffer.itemSize = 2;
-    // cubeVertexTextureCoordBuffer.numItems = 24;
-    // console.log(cubeVertexTextureCoordBuffer,colorBuffer)
+      // Left face
+      0.0, 0.0,
+      1.0, 0.0,
+      1.0, 1.0,
+      0.0, 1.0,
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+    cubeVertexTextureCoordBuffer.itemSize = 2;
+    cubeVertexTextureCoordBuffer.numItems = 24;
 
 
 
@@ -326,16 +325,15 @@ var vertexNormals = [
   gl.vertexAttribPointer(programInfo.attribLocations.vertexNormal,3,gl.FLOAT,false,0,0);
   gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal);
 
-  // if(isTexture && !loading_image){
-  //   console.log("L:",loading_image)
-  //   gl.uniform1i(programInfo.isTexture,1);
-  //   gl.activeTexture(gl.TEXTURE0);
-  //   gl.bindTexture(gl.TEXTURE_2D, wallTexture);
-  //   gl.uniform1i(programInfo.texture.image, 0);
-  // }
-  // else
-  //   gl.uniform1i(programInfo.isTexture,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,cubeVertexTextureCoordBuffer);
+  gl.vertexAttribPointer(programInfo.attribLocations.vertexTexture,2,gl.FLOAT,false,0,0);
+  gl.enableVertexAttribArray(programInfo.attribLocations.vertexTexture);
 
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+  gl.uniform1i(programInfo.texture.image, 0);
+
+  gl.uniform1i(programInfo.texture.isTexture, isTexture);
 
   // Tell WebGL which indices to use to index the vertices
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -392,7 +390,7 @@ function Octagon(gl,pos,radius,sides){
     vec3.add(cube_location,location,[radius*Math.cos(i*angle), radius*Math.sin(i*angle), 0]);
 
     // width depends on distance from center w = tan(angle/2)*2*r
-    var new_cube = Cube(gl,cube_location,[2*radius*Math.tan(angle/2),0.2,brick_depth],[rot_block,cock_block,i*angle+ Math.PI/2] ,3,false);
+    var new_cube = Cube(gl,cube_location,[2*radius*Math.tan(angle/2),0.2,brick_depth],[rot_block,cock_block,i*angle+ Math.PI/2] ,3,true);
     cubelist.push(new_cube);
   }
 
@@ -483,7 +481,7 @@ function Tunnel(gl,bricks){
 function Beam(gl,pos){
   
   var location = pos;
-  var dim = [0.2,4.0,0.5];
+  var dim = [0.2,4.0 + 4*Math.random(),0.5];
   var cube = Cube(gl,[0.0,0.0,0.0],dim,[0,0,2*Math.PI*Math.random()],2,false);
   function draw_object(gl,programInfo,projectionMatrix,viewMatrix){
 
@@ -509,7 +507,7 @@ function Beam(gl,pos){
       // We can prove that the angle diffrernce of the beam and the camera has to be greater than a particular base values
       // rot_tunnel is from the referenced plane
       var sin_angle = Math.sin(angle - cube.cubeRotation[2] - rot_tunnel);
-      return Math.abs(sin_angle) < base_angle_sin && Math.abs(zdist - location[2]) < dim[2]/2;
+      return Math.abs(sin_angle) < base_angle_sin && Math.abs(zdist - location[2]) < dim[2]/2 && rad < dim[1]/2;
   };
 
   return {

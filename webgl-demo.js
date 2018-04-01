@@ -8,7 +8,7 @@ var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 var zspeed = 0.125;
 var yspeed = 0.0;
 var is_jumping = false;
-var num_bricks = 2;
+var num_bricks = 100;
 // const new_cube = Cube(gl,[0.0,0.0,-10.0],[1.0,4.0,1.0],[0,0,0],1);
 const tunnel = Tunnel(gl,num_bricks);
 const obstacles = build_obstacle(gl,25);
@@ -17,11 +17,11 @@ var camera_radius = 1.0;
 var eye = [0.0,-camera_radius,2.0];
 var target = [0.0,-camera_radius,-3.0];
 // This is with respect to the eye
-var lightSourceLocation = [0.0,0.0,-30.0];
+var lightSourceLocation = [0.0,0.0,-100.0];
 var pause_status = true;
 var dM = 0.0;
 var loading_image = true;
-
+var inOctagon = false;
 
 
 // Run the game 
@@ -46,7 +46,7 @@ function main() {
   // Initialize a shader program; this is where all the lighting
   // for the vertices and so forth is established.
   const shaderProgram = initShaderProgram(gl);
-  // initTexture();
+  initTexture();
 
   // Collect all the info needed to use the shader program.
   // Look up which attributes our shader program is using
@@ -58,7 +58,7 @@ function main() {
       vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
       vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
       vertexNormal: gl.getAttribLocation(shaderProgram,'aVertexNormal'),
-      // vertexTexture: gl.getAttribLocation(shaderProgram,'aVertexTexture'),
+      vertexTexture: gl.getAttribLocation(shaderProgram,'aVertexTexture'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
@@ -75,10 +75,10 @@ function main() {
       eyeLocation: gl.getUniformLocation(shaderProgram,'eyeLocation'),
     },
 
-    // texture:{
-    //   image:gl.getUniformLocation(shaderProgram,'sampler'),
-    //   isTexture:gl.getUniformLocation(shaderProgram,'isTextured'),
-    // }
+    texture:{
+      image:gl.getUniformLocation(shaderProgram,'sampler'),
+      isTexture:gl.getUniformLocation(shaderProgram,'isTextured'),
+    }
 
   };
 
@@ -140,24 +140,51 @@ function tick_elements() {
   target[2] = eye[2] -5;
 
 
+  if(inOctagon){
+        if(camera_radius < 0){
+            is_jumping = false;
+            yspeed = 0.06;
+          }
 
-  if(camera_radius < 0){
-      is_jumping = false;
-      yspeed = 0.06;
+        if (camera_radius > 1)  
+          {
+            camera_radius = 1;
+            is_jumping = false;
+            yspeed = 0;
+          }
+
+        if(is_jumping){
+          yspeed += 0.006;
+        }
+          
+        camera_radius += yspeed;
     }
-
-  if (camera_radius > 1)  
-    {
-      camera_radius = 1;
-      is_jumping = false;
-      yspeed = 0;
-    }
-
-  if(is_jumping){
-    yspeed += 0.006;
-  }
     
-  camera_radius += yspeed;
+  else{
+
+    if(camera_radius < 2.5){
+            camera_radius = 2.5;
+            is_jumping = false;
+            yspeed = 0.06;
+          }
+
+        if (camera_radius > 6)  
+          {
+            camera_radius = 6;
+            is_jumping = false;
+            yspeed = 0;
+          }
+
+        if(is_jumping){
+          yspeed -= 0.02;
+        }
+        else
+          yspeed = 0.0;
+          
+        camera_radius += yspeed;
+    console.log(yspeed,camera_radius,is_jumping)
+    }
+
 
   // All collision detection
   if(obstacles.detect_collision()) 
@@ -187,15 +214,17 @@ function drawScene(gl, programInfo) {
   // Ambient Source
   gl.useProgram(programInfo.program);
 
-  gl.uniform3f(programInfo.light.ambientColor,3.0 ,3.0 ,3.0 );
+  gl.uniform3f(programInfo.light.ambientColor,2.0 ,2.0 ,2.0 );
   // gl.uniform3f(programInfo.light.ambientColor,0.2,0.2,0.2);
   // Light Source Location
   gl.uniform3f(programInfo.light.lightLocation,lightSourceLocation[0], lightSourceLocation[1], lightSourceLocation[2]);
   // Diffuse Lighting
   if (!isNaN(dM))
-    dM = 0.3*dM  + (1 - 0.3)*Math.max(0.0,dataDiff/20);
+    dM = 0.2*dM  + (1 - 0.2)*Math.max(0.0,dataDiff/5);
   else
-    dM = Math.max(0.0,dataDiff/20);
+    dM = Math.max(0.0,dataDiff/5);
+
+
   gl.uniform3f(programInfo.light.diffuseColor,dM ,  dM ,  dM );
   // Specular Lighting
   gl.uniform3f(programInfo.light.specularColor, 0.3,  0.3,  0.3);
@@ -234,7 +263,8 @@ function drawScene(gl, programInfo) {
   gl.uniform3f(programInfo.light.ambientColorObject,1.0 ,1.0 ,1.0 );
   gl = obstacles.draw(gl,programInfo,projectionMatrix,modelViewMatrix);
   gl.uniform3f(programInfo.light.ambientColorObject,0.5 ,0.5 ,0.5 );  
-  gl.enable(gl.BLEND);
+  if(inOctagon)
+   gl.enable(gl.BLEND);
   gl = tunnel.draw(gl,programInfo,projectionMatrix,modelViewMatrix);  
   
 
@@ -257,7 +287,12 @@ function key_bindings(){
   Mousetrap.bind('b', function() {eye[2] += 2*zspeed;},'keypress');
   Mousetrap.bind('t', function() {camera_roation += Math.PI;});
 
-  Mousetrap.bind('space', function() {console.log("Jump"); yspeed = -0.2; is_jumping = true;});
+  Mousetrap.bind('space', function() {console.log("Jump"); 
+                      if(inOctagon)
+                        yspeed = -0.2;
+                      else yspeed = 0.2;
+                      console.log(yspeed)
+                       is_jumping = true;});
 
   Mousetrap.bind('p', function() {pause_status = !pause_status; console.log(pause_status)});
   Mousetrap.bind('m', function() {soundInstance.paused = !soundInstance.paused});
@@ -327,8 +362,7 @@ function build_obstacle(gl,num_obstacle){
   var obstacle_list = []
   var obj_ind = []
   for (var i = 0; i < num_obstacle; i++) {
-    // var ob = randint(2);
-    var ob = 0;
+    var ob = randint(2);
     if (ob == 0){
       var beam_monster = Beam(gl,[0.0,0.0,-i*5.0]);
       obstacle_list.push(beam_monster);
@@ -408,13 +442,15 @@ var pause_box;
 function manage_init(){
   score = 0.0;
   score_h4 = document.getElementById('score_value');  
-  lives = 3;
+  lives = 10;
   lives_h4 = document.getElementById('live_value')
 
   level_h4 = document.getElementById('level_value')
   
   mute_box = document.getElementById('mute_box');
   pause_box = document.getElementById('pause_box');
+
+
 }
 
 function manage_ui(){
@@ -428,28 +464,35 @@ function manage_ui(){
   if(soundInstance)
     mute_box.checked = soundInstance.paused;
 
+  levels = Math.floor(score/100); 
+  if(levels%2 == 0 ){
+    inOctagon = true;
+  }
+  else
+    inOctagon = false;
+
 }
 
 
 function initTexture(){
-  // wallTexture = gl.createTexture();
-  // wallTexture.image =  new Image();
-  // wallTexture.image.src = "./crate.gif";
+  wallTexture = gl.createTexture();
+  wallTexture.image =  new Image();
+  wallTexture.image.src = "./wallTexture.jpg";
 
-  // wallTexture.image.onload = function() {
-  //     console.log("Loading image"); 
-  //     handleLoadedTexture(wallTexture);
-  //     loading_image = false;
-  //   }
+  wallTexture.image.onload = function() {
+      console.log("Loading image"); 
+      handleLoadedTexture(wallTexture);
+      loading_image = false;
+    }
 
 }
 
 function handleLoadedTexture(texture) {
-    // gl.bindTexture(gl.TEXTURE_2D, texture);
-    // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   }

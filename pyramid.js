@@ -135,7 +135,7 @@ function Pyramid(gl,pos,dim,rot,color_ind) {
 
   mat4.rotate(modelViewMatrix,  // destination matrix
               modelViewMatrix,  // matrix to rotate
-              cubeRotation[2],     // amount to rotate in radians
+              cubeRotation[2] + Math.PI*(!inOctagon),     // amount to rotate in radians
               [0,0,1]);       // axis to rotate around (Z)
 
   mat4.rotate(modelViewMatrix,  // destination matrix
@@ -170,6 +170,9 @@ function Pyramid(gl,pos,dim,rot,color_ind) {
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
   gl.vertexAttribPointer(programInfo.attribLocations.vertexColor,4,gl.FLOAT,false,0,0);
   gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+
+  // No texture for pyramid
+  gl.uniform1i(programInfo.texture.isTexture, false);
 
   // Tell WebGL which indices to use to index the vertices
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -250,6 +253,7 @@ function Spike(gl,pos,num){
 
   function tick(){
       spike_rotation -= Math.PI*location[2]/200000;
+
   }
 
   function detect_collision(eye){

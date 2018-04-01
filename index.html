@@ -142,7 +142,10 @@
     varying vec3 vTransformedNormal;
     varying vec4 vColor;
     varying vec4 vPosition;
+    varying vec2 vTexture;
 
+    uniform sampler2D sampler;
+    uniform bool isTextured;
 
     uniform float uMaterialShininess;
 
@@ -174,9 +177,17 @@
   specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uMaterialShininess);
 
 
-    lightWeighting = uAmbientTotal+ uPointLightingDiffuseColor*diffuseLightWeighting + specularLightWeighting*uPointLightingSpecularColor; 
+  lightWeighting = uAmbientTotal+ uPointLightingDiffuseColor*diffuseLightWeighting + specularLightWeighting*uPointLightingSpecularColor; 
 
-  gl_FragColor = vec4(vColor.rgb * lightWeighting,vColor.a);
+  vec4 fragmentColor;
+  if(isTextured){
+   fragmentColor = texture2D(sampler, vec2(vTexture.s, vTexture.t));
+    }
+  else{
+  fragmentColor = vColor;
+  }
+  
+  gl_FragColor = vec4(fragmentColor.rgb * lightWeighting,fragmentColor.a);
 
 }    
 </script>
@@ -186,6 +197,7 @@
   attribute vec4 aVertexPosition;
   attribute vec4 aVertexColor;
   attribute vec3 aVertexNormal;
+  attribute vec2 aVertexTexture;
 
   uniform mat4 uModelViewMatrix;
   uniform mat4 uProjectionMatrix;
@@ -194,12 +206,14 @@
   varying vec4 vColor;
   varying vec3 vTransformedNormal;
   varying vec4 vPosition;
+  varying vec2 vTexture;
 
   void main(void) {
     vPosition = uModelViewMatrix * aVertexPosition;
     gl_Position = uProjectionMatrix * vPosition;
     vColor = aVertexColor;
     vTransformedNormal = uNMatrix * aVertexNormal;
+    vTexture = aVertexTexture;
   }
 </script>
 
