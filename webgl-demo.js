@@ -202,6 +202,9 @@ function tick_elements() {
 // Draw the scene.
 //
 function drawScene(gl, programInfo) {
+
+
+
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
   gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -439,13 +442,16 @@ var levels=0;
 var levels_h4;
 var mute_box;
 var pause_box;
+var game_state;
 function manage_init(){
   score = 0.0;
   score_h4 = document.getElementById('score_value');  
   lives = 10;
   lives_h4 = document.getElementById('live_value')
 
-  level_h4 = document.getElementById('level_value')
+  level_h4 = document.getElementById('level_value');
+
+  game_state = document.getElementById('state_value');
   
   mute_box = document.getElementById('mute_box');
   pause_box = document.getElementById('pause_box');
@@ -471,12 +477,30 @@ function manage_ui(){
   else
     inOctagon = false;
 
+
+  if (lives < 0){
+  	pause_status = true;
+  	game_state.innerHTML = "Gameover:true"
+  
+  }
+
+  else
+  	game_state.innerHTML = "Gameover:false"
+
+
 }
 
 
 function initTexture(){
   wallTexture = gl.createTexture();
+
+  // Preload a red texture until the image loads
+  gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+              new Uint8Array([255, 0, 0, 255])); // red
+
   wallTexture.image =  new Image();
+
   wallTexture.image.src = "./wallTexture.jpg";
 
   wallTexture.image.onload = function() {

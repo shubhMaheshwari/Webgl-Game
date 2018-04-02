@@ -244,8 +244,6 @@ var vertexNormals = [
     cubeVertexTextureCoordBuffer.numItems = 24;
 
 
-
-
   // Build the element array buffer; this specifies the indices
   // into the vertex arrays for each face's vertices.
 
@@ -349,7 +347,8 @@ var vertexNormals = [
   gl.uniformMatrix3fv(programInfo.uniformLocations.normalMatrix, false, normalMatrix);
 
 
-  gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+  // !!! Scam it should be 36  
+  gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_SHORT, 0);
 
   return gl;
 
