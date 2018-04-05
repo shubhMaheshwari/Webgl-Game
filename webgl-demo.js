@@ -1,8 +1,9 @@
 // JS Code for Tunnel Game 
 
 // Initialize the buffers we'll need. For this demo, we just
-
 const canvas = document.querySelector('#glcanvas');
+
+
 var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
 var zspeed = 0.125;
@@ -230,7 +231,7 @@ function drawScene(gl, programInfo) {
 
   gl.uniform3f(programInfo.light.diffuseColor,dM ,  dM ,  dM );
   // Specular Lighting
-  gl.uniform3f(programInfo.light.specularColor, 0.3,  0.3,  0.3);
+  gl.uniform3f(programInfo.light.specularColor, 0.1,  0.1,  0.1);
   // Eye location 
   gl.uniform3f(programInfo.light.eyeLocation, eye[0],  eye[1],  eye[2]);
 
@@ -266,13 +267,14 @@ function drawScene(gl, programInfo) {
   gl.uniform3f(programInfo.light.ambientColorObject,1.0 ,1.0 ,1.0 );
   gl = obstacles.draw(gl,programInfo,projectionMatrix,modelViewMatrix);
   gl.uniform3f(programInfo.light.ambientColorObject,0.5 ,0.5 ,0.5 );  
-  if(inOctagon)
-   gl.enable(gl.BLEND);
+  // if(inOctagon)
+   // gl.enable(gl.BLEND);
   gl = tunnel.draw(gl,programInfo,projectionMatrix,modelViewMatrix);  
   
 
 }
 
+var mouseX,mouseY;
 function key_bindings(){
   
   Mousetrap.bind('up', function() {rot_block -= 0.02},'keypress');
@@ -299,8 +301,6 @@ function key_bindings(){
 
   Mousetrap.bind('p', function() {pause_status = !pause_status; console.log(pause_status)});
   Mousetrap.bind('m', function() {soundInstance.paused = !soundInstance.paused});
-
-
 };
 
 //

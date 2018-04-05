@@ -13,6 +13,7 @@
   <style type="text/css">
   body{
     background-color: #000000;
+    user-zoom:fixed;	
   }
   h1{
     color: #FFFFFF;
@@ -26,11 +27,14 @@
 
   #main_div{
     width: 100%;
-    float: left;
     max-width: 100%
   }
 
-  
+  #canvas{
+  	position: relative;
+  	/*right: 100px;*/
+  }
+
 </style>
 
 </head>
@@ -42,7 +46,7 @@
   
   <div id="main_div" class="container">    
     <div class="row">
-      <div class="white-text black col s3 card">
+      <div class="white-text black col s2 card">
           <br>
           <br>
           <br>
@@ -57,7 +61,6 @@
           <h4 align="center" id="live_value">Lives:</h4>          
           <h4 align="center" id="level_value">Level:</h4>
           <h4 align="center" id="state_value">Gameover:</h4>
-
           <br>
           <br>
           <br>
@@ -89,9 +92,14 @@
       </div>
         
       <div class="col s6 ">
-        <canvas id="glcanvas" width='1150' height='1200'></canvas>
+        <canvas id="glcanvas" width='1200' height='1000'></canvas>        
       </div>
       
+    </div>
+    <div align="center" class="row">
+    	<a id="left_button" align="left" class="waves-effect waves-light btn-large" style="position: absolute; right:200px">Left</a>
+		<a id="space_button" align="center" class="waves-effect waves-light btn-large" >Jump</a>
+		<a id="right_button" align="right" class="waves-effect waves-light btn-large" style="position: absolute; left:200px">Right</a>
     </div>
     <div align="center" class="white-text black row card">
       <div class="card-title">
@@ -123,7 +131,6 @@
         </ul>
       </div>
     </div>  
-    <img src="./wallTexture.jpg" />
     </div>  
   </body>
 
@@ -177,7 +184,7 @@
   specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), uMaterialShininess);
 
 
-  lightWeighting = uAmbientTotal+ uPointLightingDiffuseColor*diffuseLightWeighting + specularLightWeighting*uPointLightingSpecularColor; 
+  lightWeighting = uAmbientTotal+ (uPointLightingDiffuseColor*diffuseLightWeighting + specularLightWeighting*uPointLightingSpecularColor) * 0.7*dot(vPosition.xyz,vPosition.xyz); 
 
   vec4 fragmentColor;
   if(isTextured){

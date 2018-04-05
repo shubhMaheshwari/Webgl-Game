@@ -480,7 +480,7 @@ function Tunnel(gl,bricks){
 function Beam(gl,pos){
   
   var location = pos;
-  var dim = [0.2,4.0 + 4*Math.random(),0.5];
+  var dim = [0.3,4.0 + 4*Math.random(),0.5];
   var cube = Cube(gl,[0.0,0.0,0.0],dim,[0,0,2*Math.PI*Math.random()],2,false);
   function draw_object(gl,programInfo,projectionMatrix,viewMatrix){
 
@@ -497,7 +497,7 @@ function Beam(gl,pos){
   };
 
   function tick(){
-      cube.cubeRotation[2] += Math.PI*location[2]/200000;
+      cube.cubeRotation[2] += Math.PI*location[2]/20000;
   };
 
   function detect_collision(rad,angle,zdist){

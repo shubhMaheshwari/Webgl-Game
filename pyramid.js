@@ -222,7 +222,7 @@ function Spike(gl,pos,num){
   var pylist = [];
   var angle = 2*Math.PI/num_sides;
   var j = Math.floor(num_sides/num);
-  var dim = [0.5,2.0,0.5];
+  var dim = [0.8,2.0,0.5];
   for (var i = 0; i < num; i++) {
     var spike = Pyramid(gl,[octagon_radius*Math.sin(j*i*angle),-octagon_radius*Math.cos(j*i*angle),0.0],dim,[0,0,j*i*angle],1)
     pylist.push(spike);
@@ -252,7 +252,7 @@ function Spike(gl,pos,num){
   };
 
   function tick(){
-      spike_rotation -= Math.PI*location[2]/200000;
+      spike_rotation -= Math.PI*location[2]/20000;
 
   }
 
