@@ -210,7 +210,7 @@ function drawScene(gl, programInfo) {
   gl.clearDepth(1.0);                 // Clear everything
   gl.enable(gl.DEPTH_TEST);           // Enable depth testing
   gl.depthFunc(gl.LESS);            // Near things obscure far things
-  gl.blendFunc(gl.SRC_COLOR , gl.ONE);
+  gl.blendFunc(gl.ONE , gl.SRC_COLOR);
   // Clear the canvas before we start drawing on it.
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -267,8 +267,8 @@ function drawScene(gl, programInfo) {
   gl.uniform3f(programInfo.light.ambientColorObject,1.0 ,1.0 ,1.0 );
   gl = obstacles.draw(gl,programInfo,projectionMatrix,modelViewMatrix);
   gl.uniform3f(programInfo.light.ambientColorObject,0.5 ,0.5 ,0.5 );  
-  // if(inOctagon)
-   // gl.enable(gl.BLEND);
+  if(inOctagon)
+   gl.enable(gl.BLEND);
   gl = tunnel.draw(gl,programInfo,projectionMatrix,modelViewMatrix);  
   
 
