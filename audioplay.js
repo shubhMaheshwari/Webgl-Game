@@ -11,7 +11,7 @@ var RADIUS_FACTOR = 40; // the radius of the circles, factored for which ring we
 var MIN_RADIUS = 1;     // the minimum radius of each circle
 
 // global variables
-var playlist = ['./ReadyOrNot.mp3','./StressedOut.mp3','./These_days.mp3','./More_Than_You_Know.mp3','./middle.mp3'];
+var playlist = ['./assets/ReadyOrNot.mp3','./assets/StressedOut.mp3','./assets/These_days.mp3','./assets/More_Than_You_Know.mp3','./assets/middle.mp3'];
 var src = playlist[randint(playlist.length)];
 
 var soundInstance;      // the sound instance we create

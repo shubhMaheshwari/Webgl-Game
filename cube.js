@@ -348,7 +348,7 @@ var vertexNormals = [
 
 
   // !!! Scam it should be 36  
-  gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_SHORT, 0);
+  gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
 
   return gl;
 
